@@ -1,0 +1,10 @@
+const mongoose = require('mongoose');
+
+const stationSchema = new mongoose.Schema({
+  name: { type: String, required: true },
+  location: { type: String, required: true },
+  available: { type: Boolean, default: true },
+  reservedBy: { type: mongoose.Schema.Types.ObjectId, ref: 'User' }
+});
+
+module.exports = mongoose.model('Station', stationSchema);
