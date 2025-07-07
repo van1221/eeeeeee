@@ -1,0 +1,60 @@
+// Add error handling
+fetch('http://localhost:5000/api/stations')
+  .then(res => {
+    if (!res.ok) {
+      throw new Error('Network response was not ok');
+    }
+    return res.json();
+  })
+  .then(data => {
+    const list = document.getElementById('station-list');
+    data.forEach(station => {
+      const div = document.createElement('div');
+      div.className = 'station';
+      div.innerHTML = `
+        <h3>${station.name}</h3>
+        <p>Location: ${station.location}</p>
+        <p class="${station.available ? 'available' : 'unavailable'}">
+          ${station.available ? 'Available' : 'Unavailable'}
+        </p>
+        <button ${station.available ? '' : 'disabled'} onclick="reserveStation('${station._id}')">
+          Reserve
+        </button>
+      `;
+      list.appendChild(div);
+    });
+  })
+  .catch(err => {
+    console.error('Error fetching stations:', err);
+    document.getElementById('station-list').innerHTML = 
+      '<p class="error">Failed to load stations. Please try again later.</p>';
+  });
+
+// Add reservation function
+async function reserveStation(stationId) {
+  const token = localStorage.getItem('token');
+  if (!token) {
+    alert('Please login to reserve a station');
+    return;
+  }
+
+  try {
+    const response = await fetch(`http://localhost:5000/api/stations/${stationId}/reserve`, {
+      method: 'POST',
+      headers: {
+        'Authorization': `Bearer ${token}`,
+        'Content-Type': 'application/json'
+      }
+    });
+
+    if (!response.ok) {
+      throw new Error(await response.text());
+    }
+
+    alert('Station reserved successfully!');
+    window.location.reload();
+  } catch (err) {
+    console.error('Reservation error:', err);
+    alert('Failed to reserve station: ' + err.message);
+  }
+}
